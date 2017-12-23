@@ -1,0 +1,11 @@
+
+int a;
+int *a;
+int a[3];
+int *a[3];
+int (*a)[3];
+int (*a)(int s, int m);
+int (*a[3])(int s, int m);
+int *a(int s, int m);
+void (*a(int num, void (*s)(int)))(int);
+

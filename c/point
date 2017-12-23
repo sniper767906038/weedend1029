@@ -1,0 +1,52 @@
+
+指针的基本知识
+
+	char *p;
+
+	void *p;---->万能指针
+		p + 1;不对的
+	char arr[20] = "hello";
+	char *p1 = arr;
+	char *p2 = &arr[3];
+	p2 - p1---->3
+
+	int arr2[5] = {1,2,3,4,5};
+	int *a1 = arr2;
+	int *a2 = &arr2[2];
+	a2 - a1 == 2
+
+
+堆空间的开辟
+	malloc(3);
+	calloc(3);
+	realloc(3);
+		realloc(void *ptr, size_t size)
+		{
+			str = malloc(size);			
+			memcpy(str, ptr, 10);
+			free(ptr);
+		}
+
+	free(3);
+
+	memset(3);
+	memcpy(3);
+
+二级指针
+	存储一级指针变量的地址
+	char ch = 'a';
+	char *q = &ch;
+	char **p = &q;
+
+	p---->char **  8byte
+	p+1--->sizeof(char *) 8
+
+数组指针
+
+
+指针数组
+
+
+函数指针
+
+

@@ -1,0 +1,363 @@
+
+文件管理
+	文件系统结构
+		倒树状:根是开始的目录(/)
+	路径:
+		pwd--->print working directory
+		相对路径
+			相对于当前路径
+			. 当前路径
+			.. 上一级
+			以.开头的文件叫隐藏文件
+		绝对路径
+			从/开始
+
+	查看手册
+		man champer cmd/function 
+			1 	基本命令
+			2	系统调用函数
+			3	库函数
+			5	配置文件   man 5 passwd
+			7	机制	   man 7 socket  man 7 tcp  
+			8   系统命令
+
+	基本命令
+		cmd [option1] [option2] argment
+
+	显示工作路径下文件
+		ls --->list
+			option:
+				-a 	not ignore .
+				-l	long list(stat)
+				-h  human   文件的大小带单位
+				-d	directory
+				-i	inode
+	切换工作路径
+		cd path
+	复制
+		cp src_path dest_path	
+			option:
+				-r 目录
+	删除
+		rm filepath
+			option:
+				-r 目录
+	剪切
+		mv src_path dest_path
+
+	创建文件
+		touch filepath
+		如果filename文件已存在,更新文件的修改时间
+
+	创建目录
+		mkdir dirpath
+
+	查看文件内容
+		cat
+		more
+		less
+			/ 搜索
+			? 搜索	
+			q 退出
+		head
+		tail
+		管道符
+			head  -18 file | tail -8 (显示文件的11~18行)
+
+	统计文件
+		wc filepath
+			-l
+			-c 
+			-w
+	过滤
+		grep key filepath	
+			options:
+				-i 忽略大小写
+				-v 不符合要求
+				-w 精确查找
+	查看文件类型
+		file 
+	常用小命令	
+		历史命令	
+			history
+		查看日历
+			cal month year
+		关机
+			poweroff
+			init 0
+			shutdown -h now
+			halt	
+		重启
+			reboot
+			init 6
+			shutdown -r now
+
+
+	查看文件属性信息
+		stat
+	ll
+	#-##rw-rw-r--# #1# #zhangzongyan# #zhangzongyan# #1522# #11月 11 11:37# note
+	文件文件类型
+		linux不以后缀名区分文件类型
+		七种
+			普通文件		-
+			目录文件		d
+			块设备文件		b
+			字符设备文件	c
+			套接字文件		s
+			链接文件		l
+			管道文件		p
+
+		文件的权限
+			分三组(每三位为一组)
+				文件拥有者(user) 文件所属组权限(group) 其他用户权限(other)
+			每组每位
+				rwx	
+			修改文件权限
+				chmod u+x file
+				chmod u=x file
+				chmod a+r file
+
+				rw- rw- r--
+				110 110 100
+				chmod 664 file
+				
+				权限屏蔽字
+					umask
+					umask 	002
+					默认	666
+					mode & (~umask) == 目前	664
+					防止产生权限过大的文件
+			针对目录
+				r	可查询 ls
+				w	可修改 touch rm 
+				x 	可进入  cd	
+
+			在文件有x权限的基础上
+				u+s 
+					使得执行此文件的时候，拥有文件拥有者的身份
+				g+s
+				o+t
+				110 111 111 100	
+				rws rws r--
+				chmod 6774 file
+
+		文件的硬链接个数
+			硬链接
+				与源文件的inode相同，同一个文件，不同的名字
+				不能跨分区
+				不允许给目录创建硬链接
+
+				ln src_path dest_path
+
+			符号链接(软连接)
+				与源文件的inode不同,不是同一个文件,存储的是源文件的路径
+				可以跨分区
+
+				ln -s src_path dest_path
+
+		用户管理
+			linux多用户多任务的
+			用户的创建	
+				sudo useradd username1 
+				/etc/passwd
+			给定用户密码
+				sudo passwd username1
+			切换
+				sudo su username1
+				sudo su - username1 切换用户的同时将工作路径切换到用户的家目录
+			退出
+				exit
+			删除用户
+				sudo userdel -r username1
+
+			查看用户属性信息
+				id username1
+			组
+				宿组/属组
+					用户创建成功后，默认创建一个同名的组作为当前用户的宿组
+				附加组
+					可以有多个
+				创建
+					sudo groupadd groupname1
+				将用户加入组内
+					sudo gpasswd -a user1 group1
+				将用户从组内移除
+					sudo gpasswd -d user1 group1
+			
+			修改用户的拥有者和所属组
+				chown user:group filepath
+		文件的大小
+			ls -l显示的文件的大小是文件的字节个数，不是所占用的磁盘空间大小
+			stat file
+				磁盘空间 2块==1k  4k为单位分配的
+
+		文件的时间
+			文件最后一次被访问的时间
+				atime
+			文件内容最后一次修改的时间
+				mtime (ls -l)
+			文件属性最后一次被修改的时间
+				ctime
+
+			时间戳
+				当前时间距离1970.1.1 00:00:00经过的秒数
+
+		文件的查找	
+			which / where
+				可执行文件(外部命令)
+				外部命令:
+					独立的可执行文件
+				内部命令
+					没有独立的可执行文件,shell自带的
+				which ls 
+
+			locate		
+				遍历数据库
+				优势:
+					检索快
+				劣势:
+					实时性低
+				数据库的更新
+					updatedb
+				精确查找
+				locate -b '\filename'
+			find
+				遍历磁盘	
+				find path [options] file
+				options:
+					-name
+						sudo find / -name "hi"
+					-type
+						sudo find /etc -type f --->普通文件
+						sudo find /etc -type s
+					-size[cbkMG]	
+						sudo find /etc/ -size +1M
+						sudo find /etc/ -size +100k -a -size -200k
+					-maxdepth n
+					find /etc/ -name "passwd" -exec cp {} . \;
+					find /etc/ -maxdepth 1 -name "passwd" -ok cp {} . \;
+			
+
+		文件的打包 压缩
+			tar [options] name file1 file2 dir1 dir2	
+				options:
+					-c
+						创建
+					-v
+						过程可视化
+					-f 
+						包名	
+					-x
+						解包/解压
+					-t
+						查看包中内容
+					-r
+						追加
+		压缩
+			.bz2	
+			bzip2 xx.tar			
+			bunzip2 xx.tar.bz2
+			.gz
+			gzip xx.tar
+			gunzip xxx.tar.gz
+			.xz
+			xz xx.tar
+			unxz xx.tar.xz
+
+		打包并压缩
+			tar 
+				options:
+					-j 
+						tar -cvjf xxx
+						打包并压缩成bz2格式
+					-z
+						tar -cvzf xxx...
+						.gz
+					-J
+						.xz
+
+软件包管理
+	<1>sudo apt [options]
+		安装
+			sudo apt install wireshark
+		卸载
+			sudo apt remove wireshark
+			sudo apt --purge remove wireshark
+		修复
+			sudo apt -f install
+		更新源
+			sudo apt update
+		更新所有已安装的软件包
+			sudo apt upgrade
+		列出所有源包含的软件包
+			sudo apt list
+			已安装
+			sudo apt --installed list
+
+	<2>自行下载软件包
+		xx.deb
+		sudo dpkg -i xxx.deb 安装
+		sudo dpkg -r xxx     卸载
+
+		可执行包
+		xxx.bin   xxx.run
+		chmod +x xxx.bin
+		./xxx.bin
+	
+		源码包
+			压缩包(xx.tar.gz)
+			解压缩
+			./configue
+			make
+			makeinstall
+
+网络管理
+	<1>nfs 服务
+	mount
+		手动挂载			
+			sudo fdisk -l  --->查看u盘对应的是哪个设备文件(/dev/sdb2)
+			mount -t ntfs /dev/sdb2 /mnt
+		卸载
+			umount /mnt
+		将/etc/ 挂载到/mnt
+			mount --bind /etc /mnt
+		
+		共享一个目录
+		server
+			sudo apt install nfs-kernel-server	
+			sudo vim /etc/exports
+				/srv/ftp/download *(ro,sync,no_root_squash)
+			重启nfs服务
+			sudo /etc/init.d/nfs-kernel-server restart
+		user
+			显示服务端共享的目录
+				sudo showmount -e 192.168.200.175
+			挂载
+				sudo mount -t auto 192.168.200.175:/srv/ftp/download /mnt
+
+	<2>lftp	
+		user
+			sudo apt install lftp	
+			lftp 192.168.200.175
+			下载文件
+				get file
+			下载目录
+				mirror dir 默认文件下载到当前工作路径
+			切换下载路径
+				lcd path
+
+	<3>ps
+		查看进程状态
+	<4>ifconfig
+		查看所有ip
+
+
+
+
+
+
+
+
+
+
