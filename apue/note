@@ -1,0 +1,108 @@
+
+io(3,4,6,5)
+
+文件io
+
+1.文件描述符
+	文件打开标识
+	非负整型数,从0开始(0~1023)
+
+2.基本io函数
+	open(2)
+		位图:
+			拥有某个状态--->|运算
+			判断是否有某个状态---->&运算
+	read(2)
+	write(2)
+	lseek(2);
+		允许offset值超出文件大小	
+		空洞文件允许产生
+		如果文件只是lseek设置文件的offset > 文件大小，并没有进行写操作\
+			文件的字节个数不会改变
+			如果写文件，文件的字节个数会随之增大，并填充'\0'
+			但不占用磁盘空间
+
+	close(2);
+
+	errno全局变量-----errno.h
+	系统调用函数--->出错原因存指针数组中(133)
+	errno就是其数组下标
+	perror(3)　打印错误信息
+	strerror(3)
+
+3.文件共享
+	进程表项
+	文件表项
+	i结点表项
+
+4.dup(2)/dup2(2)
+	复制文件描述符
+	重定向
+
+5.fcntl(2) 
+
+第四章 文件和目录
+
+1.stat(2)/fstat(2)/lstat(2)
+	读取文件属性
+	drwxr-xr-x 2 zhangzongyan zhangzongyan 4096 1月  16 09:42 桌面
+	<1>文件类型(st_mode) 至少3位
+		7种
+		regular			-
+		directory		d
+		link			l
+		block			b
+		charactor		c
+		pipe			p
+		socket			s
+
+	<2>文件权限(st_mode)　至少12位
+		user	group 	other
+		r
+		w
+		x
+		rw-		r--		r--
+		特殊权限
+		u+s:可执行文件，执行此文件期间，拥有文件拥有者身份 
+			sudo passwd
+		g+s
+		o+t:目录
+
+	<3>硬链接(st_nlink)
+		与原文件是同一个文件，不同名字		
+		ls -l filename	
+		filename不是目录, 硬链接文件的个数
+		         是目录,此目录子目录个数
+		操作系统不允许用户为目录创建硬链接，但是目录是存在硬链接
+
+	符号链接(软链接)
+		存储原文件路径(快捷方式)
+
+	<4>获取文件拥有者和所属组(st_uid, st_gid)
+	st_uid---->uname
+	/etc/passwd
+	getpwuid(3)
+
+	st_gid---->gr_name
+	/etc/group
+	getgrgid(3)
+
+	<5>文件字节个数(st_size) != 占用磁盘空间大小(st_blocks)
+	
+	<6>文件时间	
+		access time 最后一次访问时间
+		modify time 内容最后一次修改时间 (ls -l)
+		change time 属性最后一次修改时间
+
+		st_mtim.tv_sec---->time_t时间戳---->localtime(3)时间结构体--->
+		strftime(3)时间字符串
+
+
+2.读目录
+glob(3)
+getopt(3);
+
+
+
+
+
