@@ -1,0 +1,5 @@
+
+LDFLAGS+=-lcrypt
+CFLAGS+=-D_XOPEN_SOURCE
+
+
