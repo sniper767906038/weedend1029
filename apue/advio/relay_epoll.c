@@ -6,7 +6,7 @@
 #include <errno.h>
 #include <string.h>
 #include <unistd.h>
-#include <poll.h>
+#include <sys/epoll.h>
 
 #define  FILE1 "/dev/tty10"
 #define  FILE2 "/dev/tty11"
@@ -106,42 +106,57 @@ static void create_fsm(int fd1, int fd2)
 	fd21.rfd = fd2;
 	fd21.wfd = fd1;
 	fd21.state = STATE_R;
+
+	//创建epoll实例
+	int epfd = epoll_create(1);
+	struct epoll_event evt, revt;
+
+	//将文件描述符注册到epoll实例
+	evt.events = 0;
+	evt.data.fd = fd1;
+	epoll_ctl(epfd, EPOLL_CTL_ADD, fd1, &evt);
+	evt.events = 0;
+	evt.data.fd = fd2;
+	epoll_ctl(epfd, EPOLL_CTL_ADD, fd2, &evt);
 	
-	struct pollfd pfd[2] = {};
-	pfd[0].fd = fd1;
-	pfd[1].fd = fd2;
 	//　通知 ----->　io多路转接 select poll
 	while (fd12.state != STATE_T && fd21.state != STATE_T) {
 		// 如果fd12.rfd可读或者fd12.wfd可写或者fd12.state == STATE_E OR STATE_T
-		pfd[0].events = 0;
-		pfd[0].revents = 0;
-		pfd[1].events = 0;
-		pfd[1].revents = 0;
+		evt.events = 0;
+		evt.data.fd = fd1;
 		if (fd12.state == STATE_R) {
-			pfd[0].events |= POLLIN;	
-		} else if (fd12.state == STATE_W) {
-			pfd[1].events |= POLLOUT;
+			evt.events |= EPOLLIN;
+		} 
+		if (fd21.state == STATE_W) {
+			evt.events |= EPOLLOUT;
 		}
+		epoll_ctl(epfd, EPOLL_CTL_MOD, fd1, &evt);
 
-		if (fd21.state == STATE_R) {
-			pfd[1].events |= POLLIN;
-		} else if (fd21.state == STATE_W) {
-			pfd[0].events |= POLLOUT;
+		evt.events = 0;
+		evt.data.fd = fd2;
+	   	if (fd12.state == STATE_W) {
+			evt.events |= EPOLLOUT;
 		}
+		if (fd21.state == STATE_R) {
+			evt.events |= EPOLLIN;
+		}
+		epoll_ctl(epfd, EPOLL_CTL_MOD, fd2, &evt);
 		
-		while (poll(pfd, 2, -1) < 0) {
+		while ( epoll_wait(epfd, &revt, 1, -1)< 0) {
 			if (errno == EINTR)	
 				continue;
-			perror("poll()");
+			perror("epoll()");
 			exit(1);
 		}
 
-		if (pfd[0].revents & POLLIN || pfd[1].revents & POLLOUT ||\
+		if (((revt.events & EPOLLIN) && (revt.data.fd == fd1)) ||\
+			((revt.events & EPOLLOUT) && (revt.data.fd == fd2)) ||\
 				fd12.state > STATE_BOUND) 
 			drive_fsm(&fd12);			
 		// 如果fd21.rfd可读或者fd21.wfd可写或者fd21.state == STATE_E OR STATE_T
-		if (pfd[1].revents & POLLIN || pfd[0].revents & POLLOUT ||\
-				fd21.state > STATE_BOUND) 
+		if (((revt.events & EPOLLIN) && (revt.data.fd == fd2)) ||\
+			((revt.events & EPOLLOUT) && (revt.data.fd == fd1)) ||\
+				fd12.state > STATE_BOUND) 
 			drive_fsm(&fd21);			
 	}
 	fcntl(fd1, F_SETFL, fd_save1);
